@@ -1,0 +1,27 @@
+{
+  "name": "motivational-cli",
+  "version": "1.0.0",
+  "description": "A simple CLI tool that prints a random motivational quote.",
+  "main": "index.js",
+  "bin": {
+    "motivate": "./index.js"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "cli",
+    "motivation",
+    "quotes",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
