@@ -7,11 +7,6 @@ const readline = require("readline");
 const os = require("os");
 const projectDir = path.join(os.homedir(), "motivational-cli");
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
 // Function to check if directory exists
 function directoryExists(path) {
   return fs.existsSync(path);
@@ -23,30 +18,27 @@ function runCommand(command) {
     return execSync(command, { stdio: "inherit" });
   } catch (error) {
     console.error(`Error running command: ${command}`);
+    process.exit(1);
   }
 }
 
-// Function to trigger a run
-function triggerRun() {
-  console.log("Running automated tasks...");
+// Function to trigger a full automation run
+function triggerFullAutomation() {
+  console.log("Running full automation...");
   
   // Step 1: Navigate to Project Directory
   if (!directoryExists(projectDir)) {
     console.error("Project directory does not exist. Make sure the path is correct.");
-    return;
+    process.exit(1);
   }
   process.chdir(projectDir);
 
   // Step 2: Ensure Dependencies are Installed
-  if (!directoryExists("node_modules")) {
-    console.log("Installing dependencies...");
-    runCommand("npm install");
-  } else {
-    console.log("Dependencies already installed.");
-  }
+  console.log("Ensuring dependencies are installed...");
+  runCommand("npm install");
 
   // Step 3: Run the CLI Tool
-  console.log("Running the CLI tool...");
+  console.log("Executing CLI tool...");
   runCommand("node index.js");
 
   // Step 4: Run Tests
@@ -58,7 +50,7 @@ function triggerRun() {
   const status = execSync("git status --porcelain").toString().trim();
 
   if (status) {
-    console.log("Changes detected. Adding all modified and untracked files...");
+    console.log("Changes detected. Committing and pushing...");
     runCommand("git add -A"); // Add all changes, including untracked files
     runCommand("git commit -m 'Automated trigger from run_it script'");
     runCommand("git push origin main");
@@ -66,31 +58,23 @@ function triggerRun() {
     console.log("No changes detected. Skipping commit and push.");
   }
 
-  console.log("All steps completed successfully!");
+  console.log("Full automation completed successfully!");
 }
 
-// Function to continuously ask user if they want to run the automation
-function askToRun() {
-  const timeout = setTimeout(() => {
-    console.log("\nNo response detected. Exiting automation...");
-    rl.close();
-    process.exit(0);
-  }, 30000); // 30 seconds timeout
+// Ask user if they want to run the automation
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
 
-  rl.question("Do you want to run the automation? (yes/no): ", (answer) => {
-    clearTimeout(timeout); // Reset timeout if user responds
-    if (answer.toLowerCase() === "yes") {
-      triggerRun();
-      askToRun(); // Keep asking after each run
-    } else {
-      console.log("Automation cancelled.");
-      rl.close();
-    }
-  });
-}
-
-// Start the process
-askToRun();
+rl.question("Do you want to run full automation? (yes/no): ", (answer) => {
+  rl.close();
+  if (answer.toLowerCase() === "yes") {
+    triggerFullAutomation();
+  } else {
+    console.log("Automation cancelled.");
+  }
+});
 
 // Instructions on how to run the script
 console.log("\nTo run this script, execute:");
