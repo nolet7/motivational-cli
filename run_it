@@ -23,7 +23,6 @@ function runCommand(command) {
     return execSync(command, { stdio: "inherit" });
   } catch (error) {
     console.error(`Error running command: ${command}`);
-    process.exit(1);
   }
 }
 
@@ -34,7 +33,7 @@ function triggerRun() {
   // Step 1: Navigate to Project Directory
   if (!directoryExists(projectDir)) {
     console.error("Project directory does not exist. Make sure the path is correct.");
-    process.exit(1);
+    return;
   }
   process.chdir(projectDir);
 
@@ -70,15 +69,28 @@ function triggerRun() {
   console.log("All steps completed successfully!");
 }
 
-// Ask user if they want to run the automation
-rl.question("Do you want to run the automation? (yes/no): ", (answer) => {
-  if (answer.toLowerCase() === "yes") {
-    triggerRun();
-  } else {
-    console.log("Automation cancelled.");
-  }
-  rl.close();
-});
+// Function to continuously ask user if they want to run the automation
+function askToRun() {
+  const timeout = setTimeout(() => {
+    console.log("\nNo response detected. Exiting automation...");
+    rl.close();
+    process.exit(0);
+  }, 30000); // 30 seconds timeout
+
+  rl.question("Do you want to run the automation? (yes/no): ", (answer) => {
+    clearTimeout(timeout); // Reset timeout if user responds
+    if (answer.toLowerCase() === "yes") {
+      triggerRun();
+      askToRun(); // Keep asking after each run
+    } else {
+      console.log("Automation cancelled.");
+      rl.close();
+    }
+  });
+}
+
+// Start the process
+askToRun();
 
 // Instructions on how to run the script
 console.log("\nTo run this script, execute:");
